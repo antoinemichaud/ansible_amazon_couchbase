@@ -8,6 +8,9 @@
     image: ami-ff9e0d88
     region: eu-west-1
     vpc_subnet_id: subnet-3c759e4b
+    couchbase_cluster_tag: couchbase-ansible
+    first_couchbase_node_tag: couchbase-ansible-main
+
 
 
   tasks:
@@ -23,10 +26,10 @@
         wait: true
         exact_count: 1
         count_tag:
-          Name: couchbase-ansible-main
+          Name: {{first_couchbase_node_tag}}
         instance_tags:
-          Name: couchbase-ansible-main
-          type: couchbase-ansible
+          Name: {{first_couchbase_node_tag}}
+          cluster_tag: {{couchbase_cluster_tag}}
 
 - hosts: localhost
   connection: local
