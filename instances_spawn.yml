@@ -10,11 +10,10 @@
     vpc_subnet_id: subnet-3c759e4b
     couchbase_cluster_tag: couchbase-ansible
     first_couchbase_node_tag: couchbase-ansible-main
-
-
+    other_couchbase_nodes_tag: couchbase-ansible-other-nodes
+    number_of_other_nodes: 1
 
   tasks:
-
     - name: Provision the main couchbase node
       ec2:
         key_name: {{key_name}}
@@ -31,24 +30,18 @@
           Name: {{first_couchbase_node_tag}}
           cluster_tag: {{couchbase_cluster_tag}}
 
-- hosts: localhost
-  connection: local
-  gather_facts: False
-
-  tasks:
-
     - name: Provision the other couchbase nodes
       ec2:
-        key_name: amichaud_xebia
-        group: sg-16e62d73
-        instance_type: t2.micro
-        image: ami-a10897d6
-        region: eu-west-1
-        vpc_subnet_id: subnet-3c759e4b
+        key_name: {{key_name}}
+        group: {{group}}
+        instance_type: {{instance_type}}
+        image: {{image}}
+        region: {{region}}
+        vpc_subnet_id: {{vpc_subnet_id}}
         wait: true
-        exact_count: 1
+        exact_count: {{number_of_other_nodes}}
         count_tag:
-          Name: couchbase-ansible-node
+          Name: {{other_couchbase_nodes_tag}}
         instance_tags:
-          Name: couchbase-ansible-node
-          type: couchbase-ansible
+          Name: {{other_couchbase_nodes_tag}}
+          cluster_tag: {{couchbase_cluster_tag}}
