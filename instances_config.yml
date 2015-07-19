@@ -15,42 +15,78 @@
   tasks:
 
   - name: download Couchbase package
-    get_url: url=http://packages.couchbase.com/releases/3.0.1/couchbase-server-community-3.0.1-centos6.x86_64.rpm dest=~/couchbase-server-community-3.0.1-centos6.x86_64.rpm
+    get_url: "url=http://packages.couchbase.com/releases/3.0.1/couchbase-server-community-3.0.1-centos6.x86_64.rpm
+    dest=~/couchbase-server-community-3.0.1-centos6.x86_64.rpm"
 
-  # - name: Install dependencies
-  #   yum: name=openssl state=present
-  #
-  # - name: Install Couchbase .rpm file on all machines
-  #   yum: name=/home/ec2-user/couchbase-server-community-3.0.1-centos6.x86_64.rpm state=present
-  #   sudo: yes
+  - name: Install dependencies
+    yum: name=openssl state=present
 
-# - hosts: tag_Name_couchbase_ansible_main
-#   user: ec2-user
-#   vars:
-#     key_name: amichaud_xebia
-#     group: sg-16e62d73
-#     instance_type: t1.micro
-#     image: ami-ff9e0d88
-#     region: eu-west-1
-#     vpc_subnet_id: subnet-3c759e4b
-#     couchbase_cluster_tag: couchbase-ansible
-#     first_couchbase_node_tag: couchbase-ansible-main
-#     other_couchbase_nodes_tag: couchbase-ansible-other-nodes
-#     number_of_other_nodes: 1
-#
-#   tasks:
-#   - name: Configure main node
-#     shell: sudo /opt/couchbase/bin/couchbase-cli cluster-init -c 127.0.0.1:8091  -u Administrator -p password --cluster-init-username=Administrator --cluster-init-password=password --cluster-init-port=8091 --cluster-init-ramsize=256
-#
-#   - name: Create shell script for configuring main node
-#     action: template src=couchbase-add-node.j2 dest=/tmp/addnodes.sh mode=750
-#
-#   - name: Launch config script
-#     action: shell /tmp/addnodes.sh
-#     ignore_errors: yes
-#
-#   - name: Rebalance the cluster
-#     shell: sudo /opt/couchbase/bin/couchbase-cli rebalance -c 127.0.0.1:8091 -u Administrator -p password
-#
-#   - name: create bucket default with 1 replicas
-#     shell: sudo /opt/couchbase/bin/couchbase-cli bucket-create -c 127.0.0.1:8091 --bucket=default --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=100  --bucket-replica=1 -u Administrator -p password
+  - name: Install Couchbase .rpm file on all machines
+    yum: name=/home/ec2-user/couchbase-server-community-3.0.1-centos6.x86_64.rpm state=present
+    sudo: yes
+
+  - name: Create file system on EBS volume
+    filesystem: fstype=ext4 dev=/dev/sdf
+    sudo: yes
+
+  - name: Mount EBS volume
+    mount:
+      name: /mnt/couchbase-data
+      fstype: ext4
+      src: /dev/sdf
+      state: mounted
+    sudo: yes
+
+  - name: Make couchbase owner of EBS volume
+    file: path=/mnt/couchbase-data group=couchbase owner=couchbase mode=0744 state=directory
+    sudo: yes
+
+  - name: Start couchbase-server
+    service: name=couchbase-server state=started
+    sudo: yes
+
+  - name: Check data storage configuration
+    shell: "/opt/couchbase/bin/couchbase-cli server-info -c localhost:8091 -u Administrator -p password"
+    register: couchbase_config_json
+
+  - set_fact:
+     couchbase_config: "{{ couchbase_config_json.stdout|from_json }}"
+
+  - name: Configure Couchbase to use EBS volume
+    shell: "sudo /opt/couchbase/bin/couchbase-cli node-init -c localhost:8091 -u Administrator
+    -p password --node-init-data-path=/mnt/couchbase-data --node-init-index-path=/mnt/couchbase-data"
+    when: couchbase_config.availableStorage.hdd[4].path != "/mnt/couchbase-data"
+
+- hosts: tag_Name_couchbase_ansible_main
+  user: ec2-user
+  vars:
+    key_name: amichaud_xebia
+    group: sg-16e62d73
+    instance_type: t2.micro
+    image: ami-ff9e0d88
+    region: eu-west-1
+    vpc_subnet_id: subnet-3c759e4b
+    couchbase_cluster_tag: couchbase-ansible
+    first_couchbase_node_tag: couchbase-ansible-main
+    other_couchbase_nodes_tag: couchbase-ansible-other-nodes
+    number_of_other_nodes: 1
+
+  tasks:
+  - name: Configure main node
+    shell: "sudo /opt/couchbase/bin/couchbase-cli cluster-init -c 127.0.0.1:8091
+    -u Administrator -p password --cluster-init-username=Administrator
+    --cluster-init-password=password --cluster-init-port=8091 --cluster-init-ramsize=256"
+
+  - name: Create shell script for configuring main node
+    action: template src=couchbase-add-node.j2 dest=/tmp/addnodes.sh mode=750
+
+  - name: Launch config script
+    action: shell /tmp/addnodes.sh
+    ignore_errors: yes
+
+  - name: Rebalance the cluster
+    shell: sudo /opt/couchbase/bin/couchbase-cli rebalance -c 127.0.0.1:8091 -u Administrator -p password
+
+  - name: create bucket default with 1 replicas
+    shell: "sudo /opt/couchbase/bin/couchbase-cli bucket-create -c 127.0.0.1:8091 --bucket=default
+    --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=100  --bucket-replica=1 -u Administrator -p password"

@@ -11,7 +11,7 @@
     couchbase_cluster_tag: couchbase_ansible
     first_couchbase_node_tag: couchbase_ansible_main
     other_couchbase_nodes_tag: couchbase_ansible_other_nodes
-    number_of_other_nodes: 1
+    number_of_other_nodes: 2
 
   tasks:
     - name: Provision the main couchbase node
@@ -29,7 +29,38 @@
         instance_tags:
           Name: "{{ first_couchbase_node_tag }}"
           cluster_tag: "{{ couchbase_cluster_tag }}"
-      register: ec2
+      register: couchbase_main_ec2
+
+    - name: Provision the other couchbase nodes
+      ec2:
+        key_name: "{{ key_name }}"
+        group: "{{ group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image }}"
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ vpc_subnet_id }}"
+        wait: true
+        exact_count: "{{ number_of_other_nodes }}"
+        count_tag:
+          Name: "{{ other_couchbase_nodes_tag }}"
+        instance_tags:
+          Name: "{{ other_couchbase_nodes_tag }}"
+          cluster_tag: "{{ couchbase_cluster_tag }}"
+      register: couchbase_others_ec2
+
+    - name: Attach EBS volume to instances
+      ec2_vol:
+        instance: "{{ item.id }}"
+        volume_size: 5
+        region: eu-west-1
+      with_items: couchbase_main_ec2.instances
+
+    - name: Attach EBS volume to instances
+      ec2_vol:
+        instance: "{{ item.id }}"
+        volume_size: 5
+        region: eu-west-1
+      with_items: couchbase_others_ec2.instances
 
     - name: wait for availability
       local_action:
@@ -39,35 +70,14 @@
         delay: 60
         timeout: 320
         state: started
-      with_items: ec2.instances
+      with_items: couchbase_main_ec2.instances
 
-    # - name: Attach EBS volume to instances
-    #   ec2_vol:
-    #     instance: "{{ item.id }}"
-    #     volume_size: 5
-    #     region: eu-west-1
-    #   with_items: ec2.instances
-    #
-    # - name: Provision the other couchbase nodes
-    #   ec2:
-    #     key_name: "{{ key_name }}"
-    #     group: "{{ group }}"
-    #     instance_type: "{{ instance_type }}"
-    #     image: "{{ image }}"
-    #     region: "{{ region }}"
-    #     vpc_subnet_id: "{{ vpc_subnet_id }}"
-    #     wait: true
-    #     exact_count: "{{ number_of_other_nodes }}"
-    #     count_tag:
-    #       Name: "{{ other_couchbase_nodes_tag }}"
-    #     instance_tags:
-    #       Name: "{{ other_couchbase_nodes_tag }}"
-    #       cluster_tag: "{{ couchbase_cluster_tag }}"
-    #   register: ec2
-    #
-    # - name: Attach EBS volume to instances
-    #   ec2_vol:
-    #     instance: "{{ item.id }}"
-    #     volume_size: 5
-    #     region: eu-west-1
-    #   with_items: ec2.instances
+    - name: wait for availability
+      local_action:
+        module: wait_for
+        host: "{{ item.public_ip }}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+      with_items: couchbase_others_ec2.instances
