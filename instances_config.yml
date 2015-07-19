@@ -17,12 +17,12 @@
   - name: download Couchbase package
     get_url: url=http://packages.couchbase.com/releases/3.0.1/couchbase-server-community-3.0.1-centos6.x86_64.rpm dest=~/couchbase-server-community-3.0.1-centos6.x86_64.rpm
 
-  - name: Install dependencies
-    yum: name=openssl state=present
-
-  - name: Install Couchbase .rpm file on all machines
-    yum: name=/home/ec2-user/couchbase-server-community-3.0.1-centos6.x86_64.rpm state=present
-    sudo: yes
+  # - name: Install dependencies
+  #   yum: name=openssl state=present
+  #
+  # - name: Install Couchbase .rpm file on all machines
+  #   yum: name=/home/ec2-user/couchbase-server-community-3.0.1-centos6.x86_64.rpm state=present
+  #   sudo: yes
 
 # - hosts: tag_Name_couchbase_ansible_main
 #   user: ec2-user
