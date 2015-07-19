@@ -8,9 +8,9 @@
     image: ami-ff9e0d88
     region: eu-west-1
     vpc_subnet_id: subnet-3c759e4b
-    couchbase_cluster_tag: couchbase-ansible
-    first_couchbase_node_tag: couchbase-ansible-main
-    other_couchbase_nodes_tag: couchbase-ansible-other-nodes
+    couchbase_cluster_tag: couchbase_ansible
+    first_couchbase_node_tag: couchbase_ansible_main
+    other_couchbase_nodes_tag: couchbase_ansible_other_nodes
     number_of_other_nodes: 1
 
   tasks:
