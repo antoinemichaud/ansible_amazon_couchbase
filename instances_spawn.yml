@@ -4,7 +4,7 @@
   vars:
     key_name: amichaud_xebia
     group: sg-16e62d73
-    instance_type: t1.micro
+    instance_type: t2.micro
     image: ami-ff9e0d88
     region: eu-west-1
     vpc_subnet_id: subnet-3c759e4b
@@ -16,32 +16,48 @@
   tasks:
     - name: Provision the main couchbase node
       ec2:
-        key_name: {{key_name}}
-        group: {{group}}
-        instance_type: {{instance_type}}
-        image: {{image}}
-        region: {{region}}
-        vpc_subnet_id: {{vpc_subnet_id}}
+        key_name: "{{ key_name }}"
+        group: "{{ group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image }}"
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ vpc_subnet_id }}"
         wait: true
         exact_count: 1
         count_tag:
-          Name: {{first_couchbase_node_tag}}
+          Name: "{{ first_couchbase_node_tag }}"
         instance_tags:
-          Name: {{first_couchbase_node_tag}}
-          cluster_tag: {{couchbase_cluster_tag}}
+          Name: "{{ first_couchbase_node_tag }}"
+          cluster_tag: "{{ couchbase_cluster_tag }}"
+      register: ec2
+
+    - name: Attach EBS volume to instances
+      ec2_vol:
+        instance: "{{ item.id }}"
+        volume_size: 5
+        region: eu-west-1
+      with_items: ec2.instances
 
     - name: Provision the other couchbase nodes
       ec2:
-        key_name: {{key_name}}
-        group: {{group}}
-        instance_type: {{instance_type}}
-        image: {{image}}
-        region: {{region}}
-        vpc_subnet_id: {{vpc_subnet_id}}
+        key_name: "{{ key_name }}"
+        group: "{{ group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image }}"
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ vpc_subnet_id }}"
         wait: true
-        exact_count: {{number_of_other_nodes}}
+        exact_count: "{{ number_of_other_nodes }}"
         count_tag:
-          Name: {{other_couchbase_nodes_tag}}
+          Name: "{{ other_couchbase_nodes_tag }}"
         instance_tags:
-          Name: {{other_couchbase_nodes_tag}}
-          cluster_tag: {{couchbase_cluster_tag}}
+          Name: "{{ other_couchbase_nodes_tag }}"
+          cluster_tag: "{{ couchbase_cluster_tag }}"
+      register: ec2
+
+    - name: Attach EBS volume to instances
+      ec2_vol:
+        instance: "{{ item.id }}"
+        volume_size: 5
+        region: eu-west-1
+      with_items: ec2.instances

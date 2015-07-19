@@ -1,4 +1,4 @@
-- hosts: tag_type_couchbase_ansible
+- hosts: tag_cluster_tag_couchbase_ansible
   user: ec2-user
   vars:
     key_name: amichaud_xebia
@@ -21,13 +21,8 @@
     yum: name=openssl state=present
 
   - name: Install Couchbase .rpm file on all machines
-    yum: name=/home/ec2-user/couchbase-server-community-3.0.1-centos6.x86_64.rpm
-
-  - name: Attach EBS volume to instances
-    ec2_vol:
-      instance: tag_cluster_tag_{{couchbase_cluster_tag}}
-      volume_size: 5
-      device_name: azerty
+    yum: name=/home/ec2-user/couchbase-server-community-3.0.1-centos6.x86_64.rpm state=present
+    sudo: yes
 
 # - hosts: tag_Name_couchbase_ansible_main
 #   user: ec2-user
