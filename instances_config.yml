@@ -3,7 +3,6 @@
   vars:
     key_name: amichaud_xebia
     group: sg-16e62d73
-    instance_type: t1.micro
     image: ami-ff9e0d88
     region: eu-west-1
     vpc_subnet_id: subnet-3c759e4b
@@ -11,7 +10,8 @@
     first_couchbase_node_tag: couchbase_ansible_main
     other_couchbase_nodes_tag: couchbase_ansible_other_nodes
     number_of_other_nodes: 1
-
+# reste : version ubuntu pour l'installation des paquets, transparent huge pages, ulimit, swappiness, passage en paramètre des hostsname dans le template (attention aux routes 53 !)
+# eventuellement : association avec route 53, clean parameters, add login password
   tasks:
 
   - name: download Couchbase package
@@ -45,8 +45,8 @@
     service: name=couchbase-server state=started
     sudo: yes
 
-  - name: Wait for couchbase availability
-    wait_for: port=8091 delay=5 timeout=60
+  - name: Wait for Couchbase API availability on nodes
+    wait_for: delay=3 timeout=60 port=8091
 
   - name: Check data storage configuration
     shell: "/opt/couchbase/bin/couchbase-cli server-info -c localhost:8091 -u Administrator -p password"
@@ -54,12 +54,11 @@
 
   - set_fact:
      couchbase_config: "{{ couchbase_config_json.stdout|from_json }}"
-     debug: "{{ couchbase_config_json.stdout|from_json }}"
 
   - name: Configure Couchbase to use EBS volume
     shell: "sudo /opt/couchbase/bin/couchbase-cli node-init -c localhost:8091 -u Administrator
     -p password --node-init-data-path=/mnt/couchbase-data --node-init-index-path=/mnt/couchbase-data"
-    when: couchbase_config.availableStorage.hdd[4].path != "/mnt/couchbase-data"
+    when: '"/mnt/couchbase-data" not in couchbase_config.availableStorage.hdd'
 
 - hosts: tag_Name_couchbase_ansible_main
   user: ec2-user
