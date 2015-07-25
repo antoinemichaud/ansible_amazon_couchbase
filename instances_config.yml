@@ -1,40 +1,74 @@
 - hosts: tag_cluster_tag_couchbase_ansible
-  user: ec2-user
+  # user: ec2-user
+  user: ubuntu
   vars:
-    key_name: amichaud_xebia
-    group: sg-16e62d73
-    image: ami-ff9e0d88
     region: eu-west-1
-    vpc_subnet_id: subnet-3c759e4b
     couchbase_cluster_tag: couchbase_ansible
     first_couchbase_node_tag: couchbase_ansible_main
     other_couchbase_nodes_tag: couchbase_ansible_other_nodes
-    number_of_other_nodes: 1
 # reste : version ubuntu pour l'installation des paquets, transparent huge pages, ulimit, swappiness, passage en paramètre des hostsname dans le template (attention aux routes 53 !)
-# eventuellement : association avec route 53, clean parameters, add login password
+# eventuellement : association avec route 53, clean parameters, add login password, mettre à jour les noeuds et les redémarrer pour la sécurité
+# ansible_os_family i/o ansible_distribution
   tasks:
 
-  - name: download Couchbase package
+  - name: download Couchbase package (Red hat)
     get_url: "url=http://packages.couchbase.com/releases/3.0.1/couchbase-server-community-3.0.1-centos6.x86_64.rpm
     dest=~/couchbase-server-community-3.0.1-centos6.x86_64.rpm"
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-  - name: Install dependencies
+  - name: Install dependencies (Red hat)
     yum: name=openssl state=present
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-  - name: Install Couchbase .rpm file on all machines
+  - name: Install Couchbase .rpm file on all machines (Red hat)
     yum: name=/home/ec2-user/couchbase-server-community-3.0.1-centos6.x86_64.rpm state=present
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
     sudo: yes
 
-  - name: Create file system on EBS volume
-    filesystem: fstype=ext4 dev=/dev/sdf
+  - name: download Couchbase package (Ubuntu)
+    get_url: "url=http://packages.couchbase.com/releases/3.0.1/couchbase-server-community_3.0.1-ubuntu12.04_amd64.deb
+    dest=~/couchbase-server-community_3.0.1-ubuntu12.04_amd64.deb"
+    when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+  - name: Install dependencies (Ubuntu)
+    apt: name=openssl state=present
+    when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+  - name: Install Couchbase .deb file on all machines (Ubuntu)
+    apt: deb=/home/ubuntu/couchbase-server-community_3.0.1-ubuntu12.04_amd64.deb
+    when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
     sudo: yes
 
-  - name: Mount EBS volume
+  - name: Create file system on EBS volume (Redhat)
+    filesystem:
+      fstype: ext4
+      dev: "/dev/sdf"
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+    sudo: yes
+
+  - name: Mount EBS volume (Redhat)
     mount:
       name: /mnt/couchbase-data
       fstype: ext4
       src: /dev/sdf
       state: mounted
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+    sudo: yes
+
+  - name: Create file system on EBS volume (Ubuntu)
+    filesystem:
+      fstype: ext4
+      dev: "/dev/xvdf"
+    when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+    sudo: yes
+
+  - name: Mount EBS volume (Ubuntu)
+    mount:
+      name: /mnt/couchbase-data
+      fstype: ext4
+      src: /dev/xvdf
+      state: mounted
+    when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
     sudo: yes
 
   - name: Make couchbase owner of EBS volume
@@ -61,14 +95,9 @@
     when: '"/mnt/couchbase-data" not in couchbase_config.availableStorage.hdd'
 
 - hosts: tag_Name_couchbase_ansible_main
-  user: ec2-user
+  # user: ec2-user
+  user: ubuntu
   vars:
-    key_name: amichaud_xebia
-    group: sg-16e62d73
-    instance_type: t2.micro
-    image: ami-ff9e0d88
-    region: eu-west-1
-    vpc_subnet_id: subnet-3c759e4b
     couchbase_cluster_tag: couchbase-ansible
     first_couchbase_node_tag: couchbase-ansible-main
     other_couchbase_nodes_tag: couchbase-ansible-other-nodes

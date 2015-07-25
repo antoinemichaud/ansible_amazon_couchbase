@@ -5,7 +5,8 @@
     key_name: amichaud_xebia
     group: sg-16e62d73
     instance_type: t2.micro
-    image: ami-ff9e0d88
+    # image: ami-ff9e0d88
+    image: ami-20367157
     region: eu-west-1
     vpc_subnet_id: subnet-3c759e4b
     couchbase_cluster_tag: couchbase_ansible
