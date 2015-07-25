@@ -78,9 +78,9 @@
   register: couchbase_config_json
 
 - set_fact:
-   couchbase_config: "{{ couchbase_config_json.stdout|from_json }}"
+   couchbase_config: "{{ couchbase_config_json.stdout }}"
 
 - name: Configure Couchbase to use EBS volume
   shell: "sudo /opt/couchbase/bin/couchbase-cli node-init -c localhost:8091 -u Administrator
   -p password --node-init-data-path=/mnt/couchbase-data --node-init-index-path=/mnt/couchbase-data"
-  when: '"/mnt/couchbase-data" not in couchbase_config.availableStorage.hdd|to_json'
+  when: '"/mnt/couchbase-data" not in couchbase_config.availableStorage.hdd'
