@@ -1,0 +1,18 @@
+- name: Configure main node
+  shell: "sudo /opt/couchbase/bin/couchbase-cli cluster-init -c 127.0.0.1:8091
+  -u Administrator -p password --cluster-init-username=Administrator
+--cluster-init-password=password --cluster-init-port=8091 --cluster-init-ramsize=256"
+
+- name: Create shell script for configuring main node
+  action: template src=couchbase-add-node.j2 dest=/tmp/addnodes.sh mode=750
+
+- name: Launch config script
+  action: shell /tmp/addnodes.sh
+  ignore_errors: yes
+
+- name: Rebalance the cluster
+  shell: sudo /opt/couchbase/bin/couchbase-cli rebalance -c 127.0.0.1:8091 -u Administrator -p password
+
+- name: create bucket default with 1 replicas
+  shell: "sudo /opt/couchbase/bin/couchbase-cli bucket-create -c 127.0.0.1:8091 --bucket=default
+  --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=100  --bucket-replica=1 -u Administrator -p password"

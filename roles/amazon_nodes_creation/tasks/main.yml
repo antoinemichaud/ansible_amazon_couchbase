@@ -1,0 +1,84 @@
+---
+#This playbook create the needed instances in EC2
+
+- name: Provision the main couchbase node
+  ec2:
+    key_name: "{{ key_name }}"
+    group: "{{ group }}"
+    instance_type: "{{ instance_type }}"
+    image: "{{ image }}"
+    region: "{{ region }}"
+    vpc_subnet_id: "{{ vpc_subnet_id }}"
+    wait: true
+    exact_count: 1
+    count_tag:
+      Name: "{{ first_couchbase_node_tag }}"
+    instance_tags:
+      Name: "{{ first_couchbase_node_tag }}"
+      cluster_tag: "{{ couchbase_cluster_tag }}"
+  register: couchbase_main_ec2
+
+- name: Provision the other couchbase nodes
+  ec2:
+    key_name: "{{ key_name }}"
+    group: "{{ group }}"
+    instance_type: "{{ instance_type }}"
+    image: "{{ image }}"
+    region: "{{ region }}"
+    vpc_subnet_id: "{{ vpc_subnet_id }}"
+    wait: true
+    exact_count: "{{ number_of_other_nodes }}"
+    count_tag:
+      Name: "{{ other_couchbase_nodes_tag }}"
+    instance_tags:
+      Name: "{{ other_couchbase_nodes_tag }}"
+      cluster_tag: "{{ couchbase_cluster_tag }}"
+  register: couchbase_others_ec2
+
+- name: Add nodes to inventory
+  add_host: name={{ item.public_ip }} groups=tag_Name_couchbase_ansible_main,tag_cluster_tag_couchbase_ansible
+  with_items: couchbase_main_ec2.tagged_instances
+
+- name: Add nodes to inventory
+  add_host: name={{ item.public_ip }} groups=tag_Name_couchbase_ansible_other_nodes,tag_cluster_tag_couchbase_ansible
+  with_items: couchbase_others_ec2.tagged_instances
+
+- name: List of instances ids
+  set_fact: instances_ids_list=['{{ item.id }}']
+  with_items: couchbase_main_ec2.tagged_instances
+
+- name:  List of instances public IPs
+  set_fact: instances_ips_list=['{{ item.public_ip }}']
+  with_items: couchbase_main_ec2.tagged_instances
+
+- name: Concat List of instances ids
+  set_fact: instances_ids_list="{{ instances_ids_list }} + ['{{ item.id }}']"
+  with_items: couchbase_others_ec2.tagged_instances
+
+- name: List all EBS volumes on main node
+  ec2_vol:
+    instance: "{{ item }}"
+    volume_size: 5
+    region: eu-west-1
+    state: list
+  with_items: instances_ids_list
+  register: ebs_volumes
+
+- debug: var=ebs_volumes
+
+- name: Add EBS volume when instance does not have one
+  ec2_vol:
+    instance: "{{ item.item }}"
+    volume_size: 5
+    region: eu-west-1
+  when: "'/dev/sdf' not in item.volumes|to_json"
+  with_items: ebs_volumes.results
+- name: wait for availability
+  local_action:
+    module: wait_for
+    host: "{{ item }}"
+    port: 22
+    delay: 5
+    timeout: 320
+    state: started
+  with_items: instances_ips_list

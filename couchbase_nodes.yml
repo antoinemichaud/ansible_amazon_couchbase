@@ -1,0 +1,7 @@
+---
+
+- hosts: tag_cluster_tag_couchbase_ansible
+  # user: ec2-user
+  user: ubuntu
+  roles:
+    - couchbase_nodes_setup

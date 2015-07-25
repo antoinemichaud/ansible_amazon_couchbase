@@ -1,0 +1,7 @@
+---
+
+- hosts: tag_Name_couchbase_ansible_main
+# user: ec2-user
+  user: ubuntu
+  roles:
+    - couchbase_clusterizing

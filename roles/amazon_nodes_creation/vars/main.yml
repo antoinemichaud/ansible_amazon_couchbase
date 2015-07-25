@@ -1,0 +1,15 @@
+---
+# Variables file for amazon nodes creation
+
+key_name: amichaud_xebia
+group: sg-16e62d73
+instance_type: t2.micro
+# image: ami-ff9e0d88
+image: ami-20367157
+region: eu-west-1
+vpc_subnet_id: subnet-3c759e4b
+couchbase_cluster_tag: couchbase_ansible
+first_couchbase_node_tag: couchbase_ansible_main
+other_couchbase_nodes_tag: couchbase_ansible_other_nodes
+number_of_other_nodes: 1
+ebs_volumes:
