@@ -1,6 +1,5 @@
 ---
-# reste : transparent huge pages, ulimit, swappiness, passage en paramètre des hostsname dans le template (attention aux routes 53 !)
-# eventuellement : association avec route 53, clean parameters, add login password, mettre à jour les noeuds et les redémarrer pour la sécurité
+# TODO : association avec route 53, add login password, centos
 
 - name: Make couchbase owner of EBS volume
   file: path=/mnt/couchbase-data group=couchbase owner=couchbase mode=0744 state=directory
