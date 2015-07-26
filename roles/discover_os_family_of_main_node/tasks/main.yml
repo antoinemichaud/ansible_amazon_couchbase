@@ -1,0 +1,3 @@
+---
+- name: Discover OS family
+  group_by: key=main_node_os_{{ ansible_os_family }}

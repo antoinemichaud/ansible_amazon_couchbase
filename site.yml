@@ -7,13 +7,27 @@
     - amazon_nodes_creation
 
 - hosts: tag_cluster_tag_couchbase_ansible
-  # user: ec2-user
-  user: ubuntu
   roles:
+    - discover_os_family
+
+- hosts: os_Debian
+  roles:
+    - couchbase_nodes_setup_debian
+    - couchbase_nodes_setup
+
+- hosts: os_RedHat
+  roles:
+    - couchbase_nodes_setup_redhat
     - couchbase_nodes_setup
 
 - hosts: tag_Name_couchbase_ansible_main
-  # user: ec2-user
-  user: ubuntu
+  roles:
+    - discover_os_family_of_main_node
+
+- hosts: main_node_os_Debian
+  roles:
+    - couchbase_clusterizing
+
+- hosts: main_node_os_RedHat
   roles:
     - couchbase_clusterizing

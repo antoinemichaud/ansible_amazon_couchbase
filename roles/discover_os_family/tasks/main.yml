@@ -1,0 +1,8 @@
+---
+- name: Discover OS family
+  group_by: key=os_{{ ansible_os_family }}
+  ignore_errors: yes
+
+- name: Register username
+  command: whoami
+  register: user
