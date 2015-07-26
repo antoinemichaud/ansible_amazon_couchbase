@@ -4,11 +4,9 @@
 
 - name: Make couchbase owner of EBS volume
   file: path=/mnt/couchbase-data group=couchbase owner=couchbase mode=0744 state=directory
-  sudo: yes
 
 - name: Start couchbase-server
   service: name=couchbase-server state=started
-  sudo: yes
 
 - name: Wait for Couchbase API availability on nodes
   wait_for: delay=3 timeout=60 port=8091

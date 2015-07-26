@@ -1,0 +1,33 @@
+---
+
+- name: Update system
+  apt: update_cache=yes upgrade=dist
+
+- name: Check if reboot is required
+  stat: path=/var/run/reboot-required
+  notify:
+    - reboot server
+    - wait for reboot
+
+- name: Add configuration for THP
+  blockinfile:
+    dest: /etc/rc.local
+    content: |
+      if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+         echo never > /sys/kernel/mm/transparent_hugepage/enabled
+      fi
+      if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+         echo never > /sys/kernel/mm/transparent_hugepage/defrag
+      fi
+    insertbefore: "exit 0"
+  notify:
+    - reboot server
+    - wait for reboot
+
+- name: Set swappiness to 0
+  lineinfile:
+    dest: /etc/sysctl.conf
+    line: "vm.swappiness = 0"
+  notify:
+    - reboot server
+    - wait for reboot

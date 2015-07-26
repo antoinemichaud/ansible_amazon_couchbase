@@ -1,4 +1,9 @@
 ---
+# Block in file
+- hosts: all
+  sudo: yes
+  roles:
+    - yaegashi.blockinfile
 
 - hosts: localhost
   connection: local
@@ -11,11 +16,13 @@
     - discover_os_family
 
 - hosts: os_Debian
+  sudo: yes
   roles:
     - couchbase_nodes_setup_debian
     - couchbase_nodes_setup
 
 - hosts: os_RedHat
+  sudo: yes
   roles:
     - couchbase_nodes_setup_redhat
     - couchbase_nodes_setup
