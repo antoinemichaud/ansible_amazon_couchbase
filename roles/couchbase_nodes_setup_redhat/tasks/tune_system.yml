@@ -1,18 +1,12 @@
 ---
-
+# TODO adapt to centos
 - name: Update system
   apt: update_cache=yes upgrade=dist
 
 - name: Check if reboot is required
   stat: path=/var/run/reboot-required
-  register: st
-
-- name: Program reboot if required
-  command: echo "reboot programmed"
-  when: st.stat.exists
   notify:
-  - reboot server
-  - wait for reboot
+    - reboot server
 
 - name: Add configuration for THP
   blockinfile:
@@ -26,13 +20,11 @@
       fi
     insertbefore: "exit 0"
   notify:
-  - reboot server
-  - wait for reboot
+    - reboot server
 
 - name: Set swappiness to 0
   lineinfile:
     dest: /etc/sysctl.conf
     line: "vm.swappiness = 0"
   notify:
-  - reboot server
-  - wait for reboot
+    - reboot server

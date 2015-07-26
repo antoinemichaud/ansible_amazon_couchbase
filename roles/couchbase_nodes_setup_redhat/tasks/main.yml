@@ -1,4 +1,6 @@
 ---
+- include: tune_system.yml
+
 - name: download Couchbase package
   get_url: "url=http://packages.couchbase.com/releases/3.0.1/couchbase-server-community-3.0.1-centos6.x86_64.rpm
             dest=~/couchbase-server-community-3.0.1-centos6.x86_64.rpm"
