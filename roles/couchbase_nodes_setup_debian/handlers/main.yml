@@ -5,7 +5,6 @@
   async: 1
   poll: 0
   ignore_errors: true
-  when: st.stat.exists or thp.changed or swp.changed
 
 - name: wait for reboot
   local_action: wait_for host={{ inventory_hostname }} state=started port=22 delay=15 timeout=90
