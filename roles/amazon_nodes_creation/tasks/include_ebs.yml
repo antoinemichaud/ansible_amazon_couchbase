@@ -1,7 +1,0 @@
-- name: List devices
-  ec2_vol:
-    instance: "{{ instance_id }}"
-    volume_size: 5
-    region: eu-west-1
-    state: list
-  register: ebs_volume

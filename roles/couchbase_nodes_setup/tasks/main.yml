@@ -1,7 +1,6 @@
 ---
-# reste : version ubuntu pour l'installation des paquets, transparent huge pages, ulimit, swappiness, passage en paramètre des hostsname dans le template (attention aux routes 53 !)
+# reste : transparent huge pages, ulimit, swappiness, passage en paramètre des hostsname dans le template (attention aux routes 53 !)
 # eventuellement : association avec route 53, clean parameters, add login password, mettre à jour les noeuds et les redémarrer pour la sécurité
-# ansible_os_family i/o ansible_distribution
 
 - name: Make couchbase owner of EBS volume
   file: path=/mnt/couchbase-data group=couchbase owner=couchbase mode=0744 state=directory

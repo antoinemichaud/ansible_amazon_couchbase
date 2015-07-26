@@ -55,6 +55,12 @@
   set_fact: instances_ids_list="{{ instances_ids_list }} + ['{{ item.id }}']"
   with_items: couchbase_others_ec2.tagged_instances
 
+- name: Concat List of instances iPs
+  set_fact: instances_ips_list="{{ instances_ips_list }} + ['{{ item.public_ip }}']"
+  with_items: couchbase_others_ec2.tagged_instances
+
+- debug: var=instances_ips_list
+
 - name: List all EBS volumes on main node
   ec2_vol:
     instance: "{{ item }}"
@@ -73,6 +79,7 @@
     region: eu-west-1
   when: "'/dev/sdf' not in item.volumes|to_json"
   with_items: ebs_volumes.results
+
 - name: wait for availability
   local_action:
     module: wait_for
