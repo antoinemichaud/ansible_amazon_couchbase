@@ -22,8 +22,6 @@ def append(previous_list, new_element):
     return previous_list + [new_element]
 
 class FilterModule(object):
-    ''' Ansible Antoine jinja2 filters '''
-
     def filters(self):
         return {
             'add_field_to_dict' : add_field_to_dict,
