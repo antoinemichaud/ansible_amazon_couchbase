@@ -1,7 +1,7 @@
 - name: Configure main node
   shell: "sudo /opt/couchbase/bin/couchbase-cli cluster-init -c 127.0.0.1:8091
-  -u Administrator -p password --cluster-init-username=Administrator
---cluster-init-password=password --cluster-init-port=8091 --cluster-init-ramsize=256"
+    -u {{ couchbase_username }} -p {{ couchbase_password }} --cluster-init-username={{ couchbase_username }}
+    --cluster-init-password={{ couchbase_password }} --cluster-init-port=8091 --cluster-init-ramsize={{ ram_allocated_per_node }}"
 
 - name: Create shell script for configuring main node
   action: template src=couchbase-add-node.j2 dest=/tmp/addnodes.sh mode=750
@@ -11,4 +11,4 @@
   ignore_errors: yes
 
 - name: Rebalance the cluster
-  shell: sudo /opt/couchbase/bin/couchbase-cli rebalance -c 127.0.0.1:8091 -u Administrator -p password
+  shell: sudo /opt/couchbase/bin/couchbase-cli rebalance -c 127.0.0.1:8091 -u {{ couchbase_username }} -p {{ couchbase_password }}
