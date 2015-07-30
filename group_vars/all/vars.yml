@@ -9,7 +9,6 @@ image: ami-20367157
 region: eu-west-1
 vpc_subnet_id: subnet-3c759e4b
 number_of_other_nodes: 1
-ebs_volumes:
 
 # Couchbase cluster parameters
 ram_allocated_per_node: 256 #MBytes

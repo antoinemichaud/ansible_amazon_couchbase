@@ -1,3 +1,4 @@
 couchbase_cluster_tag: couchbase_ansible
 first_couchbase_node_tag: couchbase_ansible_main
 other_couchbase_nodes_tag: couchbase_ansible_other_nodes
+ebs_volumes:
