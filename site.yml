@@ -27,7 +27,7 @@
     - couchbase_nodes_setup_redhat
     - couchbase_nodes_setup
 
-- hosts: tag_Name_couchbase_ansible_main
+- hosts: tag_Name_{{ host_base_name }}main
   roles:
     - discover_os_family_of_main_node
 
